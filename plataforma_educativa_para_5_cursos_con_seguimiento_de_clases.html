@@ -1,0 +1,1094 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MateFacil - Aulas Virtuales & Seguimiento de Clases</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#eef2ff',
+                            100: '#e0e7ff',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                            900: '#312e81',
+                        },
+                        accent: {
+                            gold: '#f59e0b',
+                            emerald: '#10b981',
+                            cyan: '#06b6d4',
+                            purple: '#8b5cf6',
+                            rose: '#f43f5e'
+                        },
+                        darkbg: '#0f172a',
+                        darkcard: '#1e293b',
+                        darkborder: '#334155'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #f8fafc; }
+        .glow-effect { box-shadow: 0 0 25px -5px rgba(99, 102, 241, 0.25); }
+        .glow-cyan { box-shadow: 0 0 25px -5px rgba(6, 182, 212, 0.25); }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between selection:bg-brand-500 selection:text-white">
+
+    <!-- Toast Notifications -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- ================= LOGIN / REGISTER SCREEN ================= -->
+    <div id="login-screen" class="fixed inset-0 z-50 bg-darkbg flex items-center justify-center p-4 overflow-y-auto">
+        <div class="w-full max-w-md my-8">
+            
+            <!-- Header Logo -->
+            <div class="text-center mb-8">
+                <div class="inline-flex w-16 h-16 rounded-2xl bg-gradient-to-tr from-brand-600 via-accent-purple to-accent-cyan items-center justify-center text-white font-black text-3xl shadow-xl shadow-brand-500/20 mb-3">
+                    ∑
+                </div>
+                <h1 class="text-3xl font-black text-white tracking-tight">MateFacil Cursos</h1>
+                <p class="text-xs text-gray-400 mt-1">Plataforma de Clases, Recursos y Progreso en Tiempo Real</p>
+            </div>
+
+            <!-- Role Selector -->
+            <div class="flex bg-darkcard p-1 rounded-2xl border border-darkborder mb-6">
+                <button id="role-tab-student" onclick="setLoginRole('student')" class="flex-1 py-2.5 rounded-xl text-xs font-bold transition-all bg-brand-600 text-white shadow-md">
+                    <i class="fa-solid fa-user-graduate mr-1.5"></i> Ingreso Estudiante
+                </button>
+                <button id="role-tab-teacher" onclick="setLoginRole('teacher')" class="flex-1 py-2.5 rounded-xl text-xs font-bold transition-all text-gray-400 hover:text-white">
+                    <i class="fa-solid fa-chalkboard-user mr-1.5"></i> Ingreso Docente
+                </button>
+            </div>
+
+            <!-- Student Login Form -->
+            <div id="form-student-login" class="bg-darkcard border border-darkborder p-6 sm:p-8 rounded-2xl shadow-2xl glow-effect">
+                <form onsubmit="handleStudentLogin(event)" class="space-y-5">
+                    <div>
+                        <label for="dni-input" class="block text-xs font-bold uppercase tracking-wider text-gray-300 mb-2">
+                            <i class="fa-solid fa-id-card text-brand-500 mr-1.5"></i> Ingresa tu DNI / Documento
+                        </label>
+                        <input type="text" id="dni-input" placeholder="Ej: 32606798" maxlength="10" required
+                            class="w-full bg-darkbg border border-darkborder rounded-xl px-4 py-3 text-base text-white font-mono tracking-wider focus:outline-none focus:border-brand-500 transition-all placeholder:text-gray-600">
+                    </div>
+
+                    <button type="submit" class="w-full py-3 bg-brand-600 hover:bg-brand-500 text-white font-bold text-sm rounded-xl transition-all shadow-lg shadow-brand-500/20 flex items-center justify-center">
+                        Ingresar a Mis Clases <i class="fa-solid fa-arrow-right ml-2"></i>
+                    </button>
+                </form>
+
+                <div class="mt-6 pt-4 border-t border-darkborder text-center">
+                    <p class="text-xs text-gray-400">¿Nuevo estudiante sin registrar?</p>
+                    <button onclick="toggleRegisterModal(true)" class="mt-1 text-xs font-bold text-accent-cyan hover:underline">
+                        <i class="fa-solid fa-user-plus mr-1"></i> Registrarme a un Curso
+                    </button>
+                </div>
+
+                <!-- Quick Test Credentials -->
+                <div class="mt-6 pt-4 border-t border-darkborder">
+                    <p class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-2">DNI de prueba en 5 Cursos:</p>
+                    <div class="flex flex-wrap gap-1.5">
+                        <button onclick="quickSelectDni('32606798')" class="px-2 py-1 bg-darkbg border border-darkborder rounded text-[11px] font-mono hover:border-brand-500">32606798 (3° C)</button>
+                        <button onclick="quickSelectDni('12345678')" class="px-2 py-1 bg-darkbg border border-darkborder rounded text-[11px] font-mono hover:border-brand-500">12345678 (1° A)</button>
+                        <button onclick="quickSelectDni('44112233')" class="px-2 py-1 bg-darkbg border border-darkborder rounded text-[11px] font-mono hover:border-brand-500">44112233 (CENS)</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Teacher Login Form -->
+            <div id="form-teacher-login" class="hidden bg-darkcard border border-darkborder p-6 sm:p-8 rounded-2xl shadow-2xl glow-cyan">
+                <form onsubmit="handleTeacherLogin(event)" class="space-y-5">
+                    <div>
+                        <label for="teacher-pin" class="block text-xs font-bold uppercase tracking-wider text-gray-300 mb-2">
+                            <i class="fa-solid fa-key text-accent-cyan mr-1.5"></i> Clave Docente
+                        </label>
+                        <input type="password" id="teacher-pin" placeholder="PIN de acceso (Defecto: 1234)" required
+                            class="w-full bg-darkbg border border-darkborder rounded-xl px-4 py-3 text-base text-white font-mono focus:outline-none focus:border-accent-cyan transition-all placeholder:text-gray-600">
+                    </div>
+
+                    <button type="submit" class="w-full py-3 bg-accent-cyan hover:bg-cyan-500 text-darkbg font-extrabold text-sm rounded-xl transition-all shadow-lg shadow-accent-cyan/20 flex items-center justify-center">
+                        Acceder al Control de Cursos <i class="fa-solid fa-lock-open ml-2"></i>
+                    </button>
+                </form>
+                <p class="text-[11px] text-gray-400 text-center mt-4 italic">Clave de acceso docente: <strong class="text-white font-mono">1234</strong></p>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ================= REGISTRATION MODAL ================= -->
+    <div id="register-modal" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-darkcard border border-darkborder rounded-2xl w-full max-w-md overflow-hidden shadow-2xl">
+            <div class="p-4 border-b border-darkborder flex justify-between items-center bg-darkbg">
+                <h3 class="font-bold text-white text-sm"><i class="fa-solid fa-user-plus text-brand-500 mr-2"></i> Registrar Alumno</h3>
+                <button onclick="toggleRegisterModal(false)" class="text-gray-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <form onsubmit="handleStudentRegistration(event)" class="p-6 space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-gray-300 uppercase mb-1">DNI del Alumno</label>
+                    <input type="text" id="reg-dni" required maxlength="10" placeholder="Ej: 40998877" class="w-full bg-darkbg border border-darkborder rounded-xl p-2.5 text-xs text-white font-mono">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-300 uppercase mb-1">Nombre y Apellido</label>
+                    <input type="text" id="reg-name" required placeholder="Ej: Lucas Gómez" class="w-full bg-darkbg border border-darkborder rounded-xl p-2.5 text-xs text-white">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-300 uppercase mb-1">Asignar a uno de los 5 Cursos</label>
+                    <select id="reg-course" required class="w-full bg-darkbg border border-darkborder rounded-xl p-2.5 text-xs text-white focus:border-brand-500">
+                        <option value="1° Año A - Matemática">1° Año A - Matemática</option>
+                        <option value="2° Año B - Física">2° Año B - Física</option>
+                        <option value="3° Año C - Álgebra">3° Año C - Álgebra</option>
+                        <option value="4° Año A - Geometría">4° Año A - Geometría</option>
+                        <option value="CENS N° 18 - Informática/Matemática">CENS N° 18 - Informática/Matemática</option>
+                    </select>
+                </div>
+                <button type="submit" class="w-full py-2.5 bg-brand-600 hover:bg-brand-500 text-white font-bold text-xs rounded-xl transition shadow-md">
+                    Registrar e Ingresar
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ================= MAIN APPLICATION ================= -->
+    <div id="app-content" class="hidden min-h-screen flex flex-col justify-between">
+        
+        <!-- HEADER -->
+        <header class="sticky top-0 z-40 bg-darkbg/90 backdrop-blur-md border-b border-darkborder">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+                
+                <div class="flex items-center space-x-3 cursor-pointer" onclick="handleLogoClick()">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-accent-cyan flex items-center justify-center text-white font-black text-xl shadow-lg">
+                        ∑
+                    </div>
+                    <div>
+                        <span class="text-xl font-extrabold tracking-tight bg-gradient-to-r from-white via-gray-200 to-brand-500 bg-clip-text text-transparent">MateFacil</span>
+                        <span id="role-badge" class="text-[10px] font-bold px-2 py-0.5 rounded-full border ml-2">ROL</span>
+                    </div>
+                </div>
+
+                <!-- STUDENT NAV -->
+                <nav id="student-nav" class="hidden md:flex items-center space-x-1">
+                    <button onclick="switchTab('mis-clases')" id="nav-mis-clases" class="nav-btn px-4 py-2 rounded-lg text-xs font-bold transition-all text-brand-500 bg-brand-500/10">
+                        <i class="fa-solid fa-chalkboard mr-1.5"></i> Mis Clases
+                    </button>
+                    <button onclick="switchTab('mi-progreso')" id="nav-mi-progreso" class="nav-btn px-4 py-2 rounded-lg text-xs font-bold text-gray-400 hover:text-white hover:bg-darkcard transition-all">
+                        <i class="fa-solid fa-chart-line mr-1.5 text-accent-cyan"></i> Mi Progreso
+                    </button>
+                    <button onclick="switchTab('mis-notas')" id="nav-mis-notas" class="nav-btn px-4 py-2 rounded-lg text-xs font-bold text-gray-400 hover:text-white hover:bg-darkcard transition-all">
+                        <i class="fa-solid fa-graduation-cap mr-1.5"></i> Mis Notas
+                    </button>
+                </nav>
+
+                <!-- TEACHER NAV -->
+                <nav id="teacher-nav" class="hidden md:flex items-center space-x-1">
+                    <button onclick="switchTab('docente-cursos')" id="nav-docente-cursos" class="nav-btn px-4 py-2 rounded-lg text-xs font-bold transition-all text-accent-cyan bg-accent-cyan/10">
+                        <i class="fa-solid fa-layer-group mr-1.5"></i> Mis 5 Cursos
+                    </button>
+                    <button onclick="switchTab('docente-nueva-clase')" id="nav-docente-nueva-clase" class="nav-btn px-4 py-2 rounded-lg text-xs font-bold text-gray-400 hover:text-white hover:bg-darkcard transition-all">
+                        <i class="fa-solid fa-plus-circle mr-1.5 text-emerald-400"></i> Publicar Clase
+                    </button>
+                    <button onclick="switchTab('docente-matriz')" id="nav-docente-matriz" class="nav-btn px-4 py-2 rounded-lg text-xs font-bold text-gray-400 hover:text-white hover:bg-darkcard transition-all">
+                        <i class="fa-solid fa-table-cells mr-1.5 text-accent-gold"></i> Matriz de Progreso
+                    </button>
+                </nav>
+
+                <!-- USER WIDGET -->
+                <div class="flex items-center space-x-3">
+                    <div id="user-widget-student" class="flex items-center bg-darkcard border border-darkborder rounded-xl p-1.5 px-3 space-x-3">
+                        <div class="text-right">
+                            <p id="header-student-name" class="text-xs font-bold text-white">Cargando...</p>
+                            <p class="text-[10px] text-accent-cyan font-mono" id="header-student-course">Curso</p>
+                        </div>
+                        <div class="bg-darkbg px-2 py-1 rounded-lg border border-darkborder text-center">
+                            <span class="text-[9px] font-bold text-accent-gold uppercase">XP</span>
+                            <p id="header-student-xp" class="text-xs font-black text-white">0</p>
+                        </div>
+                    </div>
+
+                    <div id="user-widget-teacher" class="hidden items-center bg-darkcard border border-accent-cyan/40 rounded-xl p-2 px-3 space-x-2">
+                        <i class="fa-solid fa-user-shield text-accent-cyan text-sm"></i>
+                        <div>
+                            <p class="text-xs font-bold text-white">Panel Docente</p>
+                            <p class="text-[10px] text-accent-cyan font-bold">5 Cursos Activos</p>
+                        </div>
+                    </div>
+
+                    <button onclick="logout()" title="Cerrar Sesión" class="p-2.5 rounded-xl bg-darkcard border border-darkborder hover:border-rose-500/50 hover:bg-rose-500/10 text-gray-400 hover:text-rose-400 transition-all">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- MAIN SECTION CONTAINER -->
+        <main class="flex-grow">
+
+            <!-- ================= TAB: STUDENT MIS CLASES ================= -->
+            <section id="tab-mis-clases" class="tab-content block max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                
+                <!-- Course Progress Banner -->
+                <div class="bg-gradient-to-r from-darkcard via-darkcard to-brand-900/30 border border-darkborder rounded-3xl p-6 sm:p-8 mb-8 shadow-xl">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                        <div>
+                            <span class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-brand-500/10 border border-brand-500/20 text-brand-400 text-xs font-semibold mb-2">
+                                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                                <span id="st-assigned-course-badge">Curso Asignado</span>
+                            </span>
+                            <h2 class="text-2xl sm:text-3xl font-black text-white">
+                                Clases y Materiales Didácticos
+                            </h2>
+                            <p class="text-xs text-gray-400 mt-1">Mira los videos explicativos en YouTube, descarga los PDFs y marca cada clase como completada.</p>
+                        </div>
+
+                        <div class="bg-darkbg/80 border border-darkborder p-4 rounded-2xl min-w-[260px]">
+                            <div class="flex justify-between text-xs font-bold mb-1">
+                                <span class="text-gray-400">Progreso del Curso</span>
+                                <span id="st-course-pct" class="text-emerald-400">0%</span>
+                            </div>
+                            <div class="w-full h-3 bg-gray-800 rounded-full overflow-hidden">
+                                <div id="st-course-bar" class="h-full bg-gradient-to-r from-brand-500 to-emerald-400 transition-all duration-500" style="width: 0%;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Classes Feed -->
+                <div id="student-classes-feed" class="space-y-8">
+                    <!-- Dynamic classes injected here -->
+                </div>
+
+            </section>
+
+            <!-- ================= TAB: STUDENT MI PROGRESO ================= -->
+            <section id="tab-mi-progreso" class="tab-content hidden max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <div class="max-w-4xl mx-auto space-y-6">
+                    <h2 class="text-2xl font-black text-white">Mi Avance en el Curso</h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="bg-darkcard border border-darkborder p-5 rounded-2xl flex items-center space-x-4">
+                            <div class="w-12 h-12 rounded-xl bg-accent-cyan/10 text-accent-cyan flex items-center justify-center text-xl"><i class="fa-solid fa-circle-check"></i></div>
+                            <div>
+                                <p class="text-[11px] text-gray-400 uppercase font-bold">Clases Completadas</p>
+                                <p id="prog-completed-count" class="text-xl font-black text-white">0 / 0</p>
+                            </div>
+                        </div>
+                        <div class="bg-darkcard border border-darkborder p-5 rounded-2xl flex items-center space-x-4">
+                            <div class="w-12 h-12 rounded-xl bg-accent-gold/10 text-accent-gold flex items-center justify-center text-xl"><i class="fa-solid fa-bolt"></i></div>
+                            <div>
+                                <p class="text-[11px] text-gray-400 uppercase font-bold">Puntos XP</p>
+                                <p id="prog-total-xp" class="text-xl font-black text-white">0 XP</p>
+                            </div>
+                        </div>
+                        <div class="bg-darkcard border border-darkborder p-5 rounded-2xl flex items-center space-x-4">
+                            <div class="w-12 h-12 rounded-xl bg-accent-purple/10 text-accent-purple flex items-center justify-center text-xl"><i class="fa-solid fa-award"></i></div>
+                            <div>
+                                <p class="text-[11px] text-gray-400 uppercase font-bold">Promedio de Notas</p>
+                                <p id="prog-gpa" class="text-xl font-black text-white">0.0</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-darkcard border border-darkborder rounded-2xl p-6">
+                        <h3 class="text-sm font-bold text-white mb-4">Detalle de Clases Vistas por el DNI</h3>
+                        <div id="prog-classes-checklist" class="space-y-3">
+                            <!-- Dynamic checklist -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ================= TAB: STUDENT MIS NOTAS ================= -->
+            <section id="tab-mis-notas" class="tab-content hidden max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <div class="max-w-4xl mx-auto">
+                    <h2 class="text-2xl font-black text-white mb-6">Mis Calificaciones y Devoluciones</h2>
+                    <div class="bg-darkcard border border-darkborder rounded-2xl overflow-hidden shadow-xl">
+                        <table class="w-full text-left text-xs text-gray-300">
+                            <thead class="bg-darkbg text-gray-400 font-bold uppercase border-b border-darkborder">
+                                <tr>
+                                    <th class="px-6 py-3">Clase / Trabajo</th>
+                                    <th class="px-6 py-3">Fecha</th>
+                                    <th class="px-6 py-3">Nota</th>
+                                    <th class="px-6 py-3">Devolución Docente</th>
+                                </tr>
+                            </thead>
+                            <tbody id="student-grades-table" class="divide-y divide-darkborder">
+                                <!-- Dynamic -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ================= TEACHER TAB: LOS 5 CURSOS ================= -->
+            <section id="tab-docente-cursos" class="tab-content hidden max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+                    <div>
+                        <h2 class="text-2xl font-black text-white">Gestión de tus 5 Cursos</h2>
+                        <p class="text-xs text-gray-400 mt-1">Selecciona un curso para ver sus clases publicadas y alumnos inscriptos.</p>
+                    </div>
+
+                    <!-- Course Selector Buttons -->
+                    <div class="flex flex-wrap gap-2" id="teacher-course-selector-btns">
+                        <!-- Injected dynamically -->
+                    </div>
+                </div>
+
+                <!-- Course View Content -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    
+                    <!-- Left: Published Classes in Selected Course -->
+                    <div class="lg:col-span-2 space-y-4">
+                        <div class="flex justify-between items-center">
+                            <h3 id="current-course-title" class="text-lg font-bold text-white">Clases Publicadas</h3>
+                            <button onclick="switchTab('docente-nueva-clase')" class="px-3 py-1.5 bg-accent-cyan hover:bg-cyan-500 text-darkbg font-extrabold text-xs rounded-xl transition">
+                                <i class="fa-solid fa-plus mr-1"></i> Nueva Clase
+                            </button>
+                        </div>
+                        <div id="teacher-course-classes-list" class="space-y-4">
+                            <!-- Dynamic -->
+                        </div>
+                    </div>
+
+                    <!-- Right: Students Enrolled in Selected Course -->
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center">
+                            <h3 class="text-base font-bold text-white">Alumnos del Curso</h3>
+                            <button onclick="toggleRegisterModal(true)" class="text-xs font-bold text-brand-400 hover:underline">+ Agregar</button>
+                        </div>
+                        <div class="bg-darkcard border border-darkborder rounded-2xl p-4 shadow-xl">
+                            <div id="teacher-course-students-list" class="space-y-2">
+                                <!-- Dynamic -->
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+            </section>
+
+            <!-- ================= TEACHER TAB: PUBLICAR NUEVA CLASE ================= -->
+            <section id="tab-docente-nueva-clase" class="tab-content hidden max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <div class="bg-darkcard border border-darkborder rounded-2xl p-6 shadow-xl">
+                    <h2 class="text-xl font-black text-white mb-6 flex items-center">
+                        <i class="fa-solid fa-file-video text-accent-cyan mr-2"></i> Publicar Nueva Clase / Unidad
+                    </h2>
+
+                    <form onsubmit="handleTeacherCreateClass(event)" class="space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-gray-300 uppercase mb-1">Seleccionar Curso Destino</label>
+                                <select id="new-cls-course" required class="w-full bg-darkbg border border-darkborder rounded-xl p-2.5 text-xs text-white focus:border-accent-cyan">
+                                    <option value="1° Año A - Matemática">1° Año A - Matemática</option>
+                                    <option value="2° Año B - Física">2° Año B - Física</option>
+                                    <option value="3° Año C - Álgebra">3° Año C - Álgebra</option>
+                                    <option value="4° Año A - Geometría">4° Año A - Geometría</option>
+                                    <option value="CENS N° 18 - Informática/Matemática">CENS N° 18 - Informática/Matemática</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-gray-300 uppercase mb-1">Número / Nombre de la Clase</label>
+                                <input type="text" id="new-cls-number" required placeholder="Ej: Clase 4: Ecuaciones Cuadráticas" class="w-full bg-darkbg border border-darkborder rounded-xl p-2.5 text-xs text-white focus:border-accent-cyan">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-gray-300 uppercase mb-1">Enlace del Video de YouTube (Explicación)</label>
+                            <input type="url" id="new-cls-yt" required placeholder="https://www.youtube.com/watch?v=..." class="w-full bg-darkbg border border-darkborder rounded-xl p-2.5 text-xs text-white font-mono focus:border-accent-cyan">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-gray-300 uppercase mb-1">Enlace al PDF / Material de Lectura</label>
+                            <input type="url" id="new-cls-pdf" required placeholder="Enlace a Google Drive o archivo PDF" class="w-full bg-darkbg border border-darkborder rounded-xl p-2.5 text-xs text-white font-mono focus:border-accent-cyan">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-gray-300 uppercase mb-1">Descripción y Consignas de la Clase</label>
+                            <textarea id="new-cls-desc" rows="3" required placeholder="Escribe los objetivos y pasos a seguir..." class="w-full bg-darkbg border border-darkborder rounded-xl p-2.5 text-xs text-white focus:border-accent-cyan"></textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-gray-300 uppercase mb-1">Estado de Publicación</label>
+                            <select id="new-cls-status" class="w-full bg-darkbg border border-darkborder rounded-xl p-2.5 text-xs text-white focus:border-accent-cyan">
+                                <option value="Publicado">Publicado (Inmediatamente visible)</option>
+                                <option value="Borrador">Borrador (Oculto)</option>
+                            </select>
+                        </div>
+
+                        <div class="pt-4 flex justify-end space-x-3">
+                            <button type="button" onclick="switchTab('docente-cursos')" class="px-5 py-2.5 bg-darkbg border border-darkborder rounded-xl text-xs font-bold text-gray-300">Cancelar</button>
+                            <button type="submit" class="px-6 py-2.5 bg-accent-cyan hover:bg-cyan-500 text-darkbg font-extrabold text-xs rounded-xl shadow-lg transition">Publicar Clase</button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+
+            <!-- ================= TEACHER TAB: MATRIZ SEGUIMIENTO DE PROGRESO ================= -->
+            <section id="tab-docente-matriz" class="tab-content hidden max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                    <div>
+                        <h2 class="text-2xl font-black text-white">Matriz de Seguimiento en Tiempo Real</h2>
+                        <p class="text-xs text-gray-400 mt-1">Monitorea exactamente qué alumnos completaron cada clase en sus respectivos cursos.</p>
+                    </div>
+
+                    <select id="matriz-course-filter" onchange="renderMatrizTracker()" class="bg-darkcard border border-darkborder rounded-xl p-2.5 text-xs text-white focus:border-accent-cyan">
+                        <option value="1° Año A - Matemática">1° Año A - Matemática</option>
+                        <option value="2° Año B - Física">2° Año B - Física</option>
+                        <option value="3° Año C - Álgebra">3° Año C - Álgebra</option>
+                        <option value="4° Año A - Geometría">4° Año A - Geometría</option>
+                        <option value="CENS N° 18 - Informática/Matemática">CENS N° 18 - Informática/Matemática</option>
+                    </select>
+                </div>
+
+                <!-- Tracker Table -->
+                <div class="bg-darkcard border border-darkborder rounded-2xl overflow-hidden shadow-xl mb-8">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs text-gray-300">
+                            <thead id="matriz-thead" class="bg-darkbg text-gray-400 font-bold uppercase border-b border-darkborder">
+                                <!-- Dynamic Header -->
+                            </thead>
+                            <tbody id="matriz-tbody" class="divide-y divide-darkborder">
+                                <!-- Dynamic Rows -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Grade Evaluator Box -->
+                <div class="bg-darkcard border border-darkborder rounded-2xl p-6 shadow-xl">
+                    <h3 class="text-sm font-bold text-white mb-4"><i class="fa-solid fa-pen-to-square text-accent-cyan mr-1.5"></i> Calificar Clase a un Alumno</h3>
+                    <form onsubmit="handleTeacherGradeStudent(event)" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-300 uppercase mb-1">Alumno (DNI)</label>
+                            <select id="grade-student-select" required class="w-full bg-darkbg border border-darkborder rounded-xl p-2.5 text-xs text-white">
+                                <!-- Dynamic -->
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-300 uppercase mb-1">Nombre de la Clase</label>
+                            <input type="text" id="grade-class-name" required placeholder="Ej: Clase 1: Ecuaciones" class="w-full bg-darkbg border border-darkborder rounded-xl p-2.5 text-xs text-white">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-300 uppercase mb-1">Nota (1 - 10)</label>
+                            <input type="text" id="grade-score" required placeholder="Ej: 9.50" class="w-full bg-darkbg border border-darkborder rounded-xl p-2.5 text-xs text-white">
+                        </div>
+                        <div class="md:col-span-4">
+                            <label class="block text-xs font-bold text-gray-300 uppercase mb-1">Devolución Docente</label>
+                            <input type="text" id="grade-comment" placeholder="Ej: Excelente compresión del tema visto en el video." class="w-full bg-darkbg border border-darkborder rounded-xl p-2.5 text-xs text-white">
+                        </div>
+                        <div class="md:col-span-4 text-right">
+                            <button type="submit" class="px-6 py-2 bg-accent-cyan text-darkbg font-extrabold text-xs rounded-xl shadow">Guardar Nota</button>
+                        </div>
+                    </form>
+                </div>
+
+            </section>
+
+        </main>
+
+        <footer class="bg-darkcard border-t border-darkborder py-6 mt-12 text-center text-xs text-gray-400">
+            MateFacil Plataforma Educativa - Sistema Multicurso con Seguimiento por DNI
+        </footer>
+
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        /* ================= 5 PRECONFIGURED COURSES & DATA ================= */
+        const COURSES = [
+            "1° Año A - Matemática",
+            "2° Año B - Física",
+            "3° Año C - Álgebra",
+            "4° Año A - Geometría",
+            "CENS N° 18 - Informática/Matemática"
+        ];
+
+        const initialStudents = {
+            "32606798": {
+                dni: "32606798",
+                name: "Martín Benítez",
+                course: "3° Año C - Álgebra",
+                completedClasses: [101],
+                xp: 150,
+                grades: [
+                    { className: "Clase 1: Vectores y Matrices", date: "24/10/2026", grade: "9.50", comment: "Gran desempeño." }
+                ]
+            },
+            "12345678": {
+                dni: "12345678",
+                name: "Camila Rodríguez",
+                course: "1° Año A - Matemática",
+                completedClasses: [],
+                xp: 0,
+                grades: []
+            },
+            "44112233": {
+                dni: "44112233",
+                name: "Roberto Fernández",
+                course: "CENS N° 18 - Informática/Matemática",
+                completedClasses: [301],
+                xp: 150,
+                grades: []
+            }
+        };
+
+        const initialClasses = [
+            {
+                id: 101,
+                course: "3° Año C - Álgebra",
+                title: "Clase 1: Vectores en R2 y R3",
+                ytUrl: "https://www.youtube.com/embed/2yfkEAt2ew0",
+                pdfUrl: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
+                desc: "Analizaremos componentes vectoriales, norma y suma gráfica.",
+                status: "Publicado",
+                date: "20/10/2026"
+            },
+            {
+                id: 102,
+                course: "3° Año C - Álgebra",
+                title: "Clase 2: Producto Escalar y Vectorial",
+                ytUrl: "https://www.youtube.com/embed/2yfkEAt2ew0",
+                pdfUrl: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
+                desc: "Cálculo de ángulos entre vectores y área de paralelogramos.",
+                status: "Publicado",
+                date: "24/10/2026"
+            },
+            {
+                id: 201,
+                course: "1° Año A - Matemática",
+                title: "Clase 1: Ecuaciones Lineales de 1er Grado",
+                ytUrl: "https://www.youtube.com/embed/2yfkEAt2ew0",
+                pdfUrl: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
+                desc: "Despeje de incógnita y verificación de soluciones.",
+                status: "Publicado",
+                date: "22/10/2026"
+            },
+            {
+                id: 301,
+                course: "CENS N° 18 - Informática/Matemática",
+                title: "Clase 1: Introducción a Hojas de Cálculo y Fórmulas",
+                ytUrl: "https://www.youtube.com/embed/2yfkEAt2ew0",
+                pdfUrl: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
+                desc: "Uso de SUMA, PROMEDIO y formato condicional.",
+                status: "Publicado",
+                date: "21/10/2026"
+            }
+        ];
+
+        // Persistent State
+        let studentsDb = JSON.parse(localStorage.getItem('mf5_students')) || initialStudents;
+        let classesDb = JSON.parse(localStorage.getItem('mf5_classes')) || initialClasses;
+        let currentRole = 'student';
+        let activeStudentDni = null;
+        let selectedTeacherCourse = COURSES[2]; // Default 3° Año C
+
+        function saveState() {
+            localStorage.setItem('mf5_students', JSON.stringify(studentsDb));
+            localStorage.setItem('mf5_classes', JSON.stringify(classesDb));
+        }
+
+        /* ================= AUTHENTICATION ================= */
+        function setLoginRole(role) {
+            currentRole = role;
+            const tabStud = document.getElementById('role-tab-student');
+            const tabTeach = document.getElementById('role-tab-teacher');
+            const formStud = document.getElementById('form-student-login');
+            const formTeach = document.getElementById('form-teacher-login');
+
+            if (role === 'student') {
+                tabStud.className = "flex-1 py-2.5 rounded-xl text-xs font-bold transition-all bg-brand-600 text-white shadow-md";
+                tabTeach.className = "flex-1 py-2.5 rounded-xl text-xs font-bold transition-all text-gray-400 hover:text-white";
+                formStud.classList.remove('hidden');
+                formTeach.classList.add('hidden');
+            } else {
+                tabTeach.className = "flex-1 py-2.5 rounded-xl text-xs font-bold transition-all bg-accent-cyan text-darkbg shadow-md font-extrabold";
+                tabStud.className = "flex-1 py-2.5 rounded-xl text-xs font-bold transition-all text-gray-400 hover:text-white";
+                formTeach.classList.remove('hidden');
+                formStud.classList.add('hidden');
+            }
+        }
+
+        function handleStudentLogin(e) {
+            e.preventDefault();
+            const dni = document.getElementById('dni-input').value.trim();
+            if (!studentsDb[dni]) {
+                showToast("DNI no registrado. Utiliza la opción de Registro.", "error");
+                return;
+            }
+            activeStudentDni = dni;
+            currentRole = 'student';
+            launchApp();
+        }
+
+        function handleTeacherLogin(e) {
+            e.preventDefault();
+            const pin = document.getElementById('teacher-pin').value.trim();
+            if (pin === '1234' || pin === 'admin') {
+                currentRole = 'teacher';
+                activeStudentDni = null;
+                launchApp();
+                showToast("Bienvenido Docente", "success");
+            } else {
+                showToast("PIN incorrecto (Usar: 1234)", "error");
+            }
+        }
+
+        function handleStudentRegistration(e) {
+            e.preventDefault();
+            const dni = document.getElementById('reg-dni').value.trim();
+            const name = document.getElementById('reg-name').value.trim();
+            const course = document.getElementById('reg-course').value;
+
+            if (studentsDb[dni]) {
+                showToast("Este DNI ya está registrado.", "error");
+                return;
+            }
+
+            studentsDb[dni] = {
+                dni: dni,
+                name: name,
+                course: course,
+                completedClasses: [],
+                xp: 0,
+                grades: []
+            };
+
+            saveState();
+            toggleRegisterModal(false);
+            showToast("Registrado con éxito.", "success");
+            
+            activeStudentDni = dni;
+            currentRole = 'student';
+            launchApp();
+        }
+
+        function quickSelectDni(dni) {
+            document.getElementById('dni-input').value = dni;
+        }
+
+        function logout() {
+            activeStudentDni = null;
+            document.getElementById('login-screen').classList.remove('hidden');
+            document.getElementById('app-content').classList.add('hidden');
+        }
+
+        /* ================= LAUNCH APP ================= */
+        function launchApp() {
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('app-content').classList.remove('hidden');
+
+            const roleBadge = document.getElementById('role-badge');
+            const studentNav = document.getElementById('student-nav');
+            const teacherNav = document.getElementById('teacher-nav');
+            const widgetStudent = document.getElementById('user-widget-student');
+            const widgetTeacher = document.getElementById('user-widget-teacher');
+
+            if (currentRole === 'teacher') {
+                roleBadge.className = "text-[10px] font-bold text-accent-cyan bg-accent-cyan/10 px-2 py-0.5 rounded-full border border-accent-cyan/30 ml-2";
+                roleBadge.innerText = "DOCENTE (5 CURSOS)";
+
+                studentNav.classList.add('hidden');
+                teacherNav.classList.remove('hidden');
+                widgetStudent.classList.add('hidden');
+                widgetTeacher.classList.remove('hidden');
+
+                renderTeacherPanel();
+                switchTab('docente-cursos');
+            } else {
+                roleBadge.className = "text-[10px] font-bold text-brand-400 bg-brand-500/10 px-2 py-0.5 rounded-full border border-brand-500/30 ml-2";
+                roleBadge.innerText = "ALUMNO";
+
+                teacherNav.classList.add('hidden');
+                studentNav.classList.remove('hidden');
+                widgetTeacher.classList.add('hidden');
+                widgetStudent.classList.remove('hidden');
+
+                renderStudentPanel();
+                switchTab('mis-clases');
+            }
+        }
+
+        /* ================= RENDER STUDENT PANEL ================= */
+        function renderStudentPanel() {
+            const st = studentsDb[activeStudentDni];
+            if (!st) return;
+
+            document.getElementById('header-student-name').innerText = st.name;
+            document.getElementById('header-student-course').innerText = st.course;
+            document.getElementById('header-student-xp').innerText = st.xp;
+            document.getElementById('st-assigned-course-badge').innerText = st.course;
+
+            // Filter classes for student's course
+            const courseClasses = classesDb.filter(c => c.course === st.course && c.status === 'Publicado');
+            
+            // Calculate Progress
+            const completedCount = courseClasses.filter(c => st.completedClasses.includes(c.id)).length;
+            const pct = courseClasses.length > 0 ? Math.round((completedCount / courseClasses.length) * 100) : 0;
+            
+            document.getElementById('st-course-pct').innerText = `${pct}%`;
+            document.getElementById('st-course-bar').style.width = `${pct}%`;
+
+            // Feed Render
+            renderStudentClassesFeed(courseClasses, st);
+
+            // Progress Tab Render
+            document.getElementById('prog-completed-count').innerText = `${completedCount} / ${courseClasses.length}`;
+            document.getElementById('prog-total-xp').innerText = `${st.xp} XP`;
+            
+            const validGrades = st.grades.map(g => parseFloat(g.grade)).filter(n => !isNaN(n));
+            const avg = validGrades.length > 0 ? (validGrades.reduce((a,b)=>a+b,0)/validGrades.length).toFixed(1) : '0.0';
+            document.getElementById('prog-gpa').innerText = avg;
+
+            renderStudentChecklist(courseClasses, st);
+            renderStudentGradesTable(st.grades);
+        }
+
+        function renderStudentClassesFeed(classes, st) {
+            const container = document.getElementById('student-classes-feed');
+            if (classes.length === 0) {
+                container.innerHTML = `<div class="bg-darkcard p-8 rounded-2xl text-center text-gray-500 italic">No hay clases publicadas para tu curso en este momento.</div>`;
+                return;
+            }
+
+            container.innerHTML = classes.map(c => {
+                const isDone = st.completedClasses.includes(c.id);
+                return `
+                    <div class="bg-darkcard border border-darkborder rounded-3xl p-6 shadow-xl space-y-4">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-darkborder/60 pb-3">
+                            <div>
+                                <span class="text-[10px] font-bold text-accent-cyan uppercase tracking-wider">${c.date}</span>
+                                <h3 class="text-lg font-extrabold text-white">${c.title}</h3>
+                            </div>
+                            <div>
+                                ${isDone 
+                                    ? '<span class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30"><i class="fa-solid fa-check mr-1"></i> Completada</span>' 
+                                    : `<button onclick="markClassCompleted(${c.id})" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow transition"><i class="fa-solid fa-circle-check mr-1.5"></i> Marcar como Completada (+150 XP)</button>`
+                                }
+                            </div>
+                        </div>
+
+                        <p class="text-xs text-gray-300">${c.desc}</p>
+
+                        <!-- Content Grid: Video Embed & PDF Link -->
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 pt-2">
+                            <div class="lg:col-span-2 aspect-video bg-black rounded-2xl overflow-hidden border border-darkborder shadow-inner">
+                                <iframe src="${cleanYoutubeUrl(c.ytUrl)}" class="w-full h-full" frameborder="0" allowfullscreen></iframe>
+                            </div>
+                            <div class="bg-darkbg border border-darkborder rounded-2xl p-5 flex flex-col justify-between">
+                                <div>
+                                    <div class="w-10 h-10 rounded-xl bg-accent-cyan/10 text-accent-cyan flex items-center justify-center text-xl mb-3">
+                                        <i class="fa-solid fa-file-pdf"></i>
+                                    </div>
+                                    <h4 class="text-xs font-bold text-white mb-1">Guía Didáctica / Apunte</h4>
+                                    <p class="text-[11px] text-gray-400">Descarga la guía en PDF para resolver los ejercicios propuestos.</p>
+                                </div>
+                                <a href="${c.pdfUrl}" target="_blank" class="mt-4 w-full py-2.5 bg-darkcard hover:bg-gray-800 text-accent-cyan border border-darkborder font-bold text-xs rounded-xl text-center transition">
+                                    <i class="fa-solid fa-download mr-1.5"></i> Abrir PDF
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderStudentChecklist(classes, st) {
+            const container = document.getElementById('prog-classes-checklist');
+            container.innerHTML = classes.map(c => {
+                const isDone = st.completedClasses.includes(c.id);
+                return `
+                    <div class="flex items-center justify-between p-3 rounded-xl bg-darkbg border border-darkborder text-xs">
+                        <span class="font-bold ${isDone ? 'text-white' : 'text-gray-400'}">${c.title}</span>
+                        <span class="${isDone ? 'text-emerald-400 font-bold' : 'text-gray-600'}">${isDone ? '✔ Completado (+150 XP)' : 'Pendiente'}</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderStudentGradesTable(grades) {
+            const tbody = document.getElementById('student-grades-table');
+            if (!grades || grades.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="px-6 py-4 text-xs text-gray-500 italic">No hay calificaciones registradas aún.</td></tr>`;
+                return;
+            }
+            tbody.innerHTML = grades.map(g => `
+                <tr>
+                    <td class="px-6 py-3.5 font-bold text-white">${g.className}</td>
+                    <td class="px-6 py-3.5 text-gray-400 font-mono">${g.date}</td>
+                    <td class="px-6 py-3.5 font-black text-accent-gold">${g.grade}</td>
+                    <td class="px-6 py-3.5 text-gray-300">${g.comment}</td>
+                </tr>
+            `).join('');
+        }
+
+        function markClassCompleted(classId) {
+            if (!activeStudentDni || !studentsDb[activeStudentDni]) return;
+            const st = studentsDb[activeStudentDni];
+            
+            if (!st.completedClasses.includes(classId)) {
+                st.completedClasses.push(classId);
+                st.xp += 150;
+                saveState();
+                renderStudentPanel();
+                showToast("¡Excelente! Clase completada +150 XP", "success");
+            }
+        }
+
+        /* ================= RENDER TEACHER PANEL ================= */
+        function renderTeacherPanel() {
+            renderTeacherCourseBtns();
+            renderTeacherCourseDetails();
+            renderMatrizTracker();
+            populateTeacherGradeSelect();
+        }
+
+        function renderTeacherCourseBtns() {
+            const container = document.getElementById('teacher-course-selector-btns');
+            container.innerHTML = COURSES.map(crs => `
+                <button onclick="selectTeacherCourse('${crs}')" class="px-3 py-1.5 rounded-xl text-xs font-bold border ${selectedTeacherCourse === crs ? 'border-accent-cyan bg-accent-cyan/20 text-accent-cyan' : 'border-darkborder bg-darkcard text-gray-400 hover:text-white'}">
+                    ${crs}
+                </button>
+            `).join('');
+        }
+
+        function selectTeacherCourse(crs) {
+            selectedTeacherCourse = crs;
+            renderTeacherCourseBtns();
+            renderTeacherCourseDetails();
+        }
+
+        function renderTeacherCourseDetails() {
+            document.getElementById('current-course-title').innerText = `Clases en ${selectedTeacherCourse}`;
+            
+            // Classes List
+            const crsClasses = classesDb.filter(c => c.course === selectedTeacherCourse);
+            const classesContainer = document.getElementById('teacher-course-classes-list');
+
+            if (crsClasses.length === 0) {
+                classesContainer.innerHTML = `<p class="text-xs text-gray-500 italic p-4 bg-darkcard rounded-xl">No hay clases publicadas en este curso.</p>`;
+            } else {
+                classesContainer.innerHTML = crsClasses.map(c => `
+                    <div class="bg-darkcard border border-darkborder p-4 rounded-xl flex items-center justify-between">
+                        <div>
+                            <h4 class="text-xs font-bold text-white">${c.title}</h4>
+                            <p class="text-[10px] text-gray-400">${c.date} | ${c.status}</p>
+                        </div>
+                        <button onclick="toggleClassVisibility(${c.id})" class="px-2.5 py-1 bg-darkbg border border-darkborder text-[11px] text-gray-300 font-bold rounded-lg hover:border-accent-cyan">
+                            Visibilidad: ${c.status}
+                        </button>
+                    </div>
+                `).join('');
+            }
+
+            // Students List
+            const crsStudents = Object.values(studentsDb).filter(s => s.course === selectedTeacherCourse);
+            const stdContainer = document.getElementById('teacher-course-students-list');
+
+            if (crsStudents.length === 0) {
+                stdContainer.innerHTML = `<p class="text-xs text-gray-500 italic">No hay alumnos inscriptos en este curso.</p>`;
+            } else {
+                stdContainer.innerHTML = crsStudents.map(s => `
+                    <div class="p-2.5 bg-darkbg border border-darkborder rounded-xl flex items-center justify-between">
+                        <div>
+                            <p class="text-xs font-bold text-white">${s.name}</p>
+                            <p class="text-[10px] text-gray-400 font-mono">DNI: ${s.dni}</p>
+                        </div>
+                        <span class="text-xs font-bold text-accent-gold">${s.xp} XP</span>
+                    </div>
+                `).join('');
+            }
+        }
+
+        function renderMatrizTracker() {
+            const courseSelect = document.getElementById('matriz-course-filter').value;
+            const courseClasses = classesDb.filter(c => c.course === courseSelect && c.status === 'Publicado');
+            const courseStudents = Object.values(studentsDb).filter(s => s.course === courseSelect);
+
+            const thead = document.getElementById('matriz-thead');
+            const tbody = document.getElementById('matriz-tbody');
+
+            // Header
+            let headHtml = `<tr><th class="px-4 py-3">Alumno (DNI)</th>`;
+            courseClasses.forEach(c => {
+                headHtml += `<th class="px-4 py-3 text-center">${c.title}</th>`;
+            });
+            headHtml += `<th class="px-4 py-3 text-right">% Avance</th></tr>`;
+            thead.innerHTML = headHtml;
+
+            // Rows
+            if (courseStudents.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="${courseClasses.length + 2}" class="px-4 py-4 text-xs text-gray-500 italic">Sin estudiantes en este curso.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = courseStudents.map(st => {
+                const completedCount = courseClasses.filter(c => st.completedClasses.includes(c.id)).length;
+                const pct = courseClasses.length > 0 ? Math.round((completedCount / courseClasses.length) * 100) : 0;
+
+                let rowHtml = `
+                    <tr class="hover:bg-darkbg/50">
+                        <td class="px-4 py-3">
+                            <p class="font-bold text-white">${st.name}</p>
+                            <p class="text-[10px] text-gray-400 font-mono">${st.dni}</p>
+                        </td>
+                `;
+
+                courseClasses.forEach(c => {
+                    const isDone = st.completedClasses.includes(c.id);
+                    rowHtml += `
+                        <td class="px-4 py-3 text-center">
+                            ${isDone 
+                                ? '<span class="text-emerald-400 text-base" title="Vista">✔</span>' 
+                                : '<span class="text-gray-600 text-xs">—</span>'}
+                        </td>
+                    `;
+                });
+
+                rowHtml += `
+                        <td class="px-4 py-3 text-right font-bold ${pct === 100 ? 'text-emerald-400' : 'text-accent-gold'}">
+                            ${pct}%
+                        </td>
+                    </tr>
+                `;
+                return rowHtml;
+            }).join('');
+        }
+
+        function populateTeacherGradeSelect() {
+            const select = document.getElementById('grade-student-select');
+            select.innerHTML = Object.values(studentsDb).map(st => `
+                <option value="${st.dni}">${st.name} (DNI: ${st.dni} - ${st.course})</option>
+            `).join('');
+        }
+
+        function handleTeacherCreateClass(e) {
+            e.preventDefault();
+            const course = document.getElementById('new-cls-course').value;
+            const number = document.getElementById('new-cls-number').value.trim();
+            const ytUrl = document.getElementById('new-cls-yt').value.trim();
+            const pdfUrl = document.getElementById('new-cls-pdf').value.trim();
+            const desc = document.getElementById('new-cls-desc').value.trim();
+            const status = document.getElementById('new-cls-status').value;
+
+            const newCls = {
+                id: Date.now(),
+                course: course,
+                title: number,
+                ytUrl: ytUrl,
+                pdfUrl: pdfUrl,
+                desc: desc,
+                status: status,
+                date: new Date().toLocaleDateString('es-AR')
+            };
+
+            classesDb.unshift(newCls);
+            saveState();
+            showToast("Clase publicada exitosamente", "success");
+            e.target.reset();
+            switchTab('docente-cursos');
+            renderTeacherPanel();
+        }
+
+        function toggleClassVisibility(id) {
+            const cls = classesDb.find(c => c.id === id);
+            if (cls) {
+                cls.status = cls.status === 'Publicado' ? 'Borrador' : 'Publicado';
+                saveState();
+                renderTeacherCourseDetails();
+                showToast(`Estado de visibilidad: ${cls.status}`, "info");
+            }
+        }
+
+        function handleTeacherGradeStudent(e) {
+            e.preventDefault();
+            const dni = document.getElementById('grade-student-select').value;
+            const clsName = document.getElementById('grade-class-name').value.trim();
+            const score = document.getElementById('grade-score').value.trim();
+            const comment = document.getElementById('grade-comment').value.trim();
+
+            if (!studentsDb[dni]) return;
+
+            studentsDb[dni].grades.unshift({
+                className: clsName,
+                date: new Date().toLocaleDateString('es-AR'),
+                grade: score,
+                comment: comment || "Sin devolución especificada."
+            });
+
+            saveState();
+            showToast("Nota guardada en la ficha del alumno", "success");
+            e.target.reset();
+        }
+
+        /* ================= UTILS ================= */
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('text-brand-500', 'bg-brand-500/10', 'text-accent-cyan', 'bg-accent-cyan/10');
+                btn.classList.add('text-gray-400');
+            });
+
+            const activeBtn = document.getElementById(`nav-${tabId}`);
+            if (activeBtn) {
+                if (currentRole === 'teacher') activeBtn.classList.add('text-accent-cyan', 'bg-accent-cyan/10');
+                else activeBtn.classList.add('text-brand-500', 'bg-brand-500/10');
+            }
+        }
+
+        function cleanYoutubeUrl(url) {
+            if (url.includes('embed/')) return url;
+            const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
+            return match ? `https://www.youtube.com/embed/${match[1]}` : url;
+        }
+
+        function toggleRegisterModal(show) {
+            const modal = document.getElementById('register-modal');
+            if (show) modal.classList.remove('hidden');
+            else modal.classList.add('hidden');
+        }
+
+        function handleLogoClick() {
+            if (currentRole === 'teacher') switchTab('docente-cursos');
+            else switchTab('mis-clases');
+        }
+
+        function showToast(message, type = "info") {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            let colors = "bg-darkcard border-darkborder text-white";
+            if (type === 'success') colors = "bg-emerald-950 border-emerald-500/50 text-emerald-200";
+            if (type === 'error') colors = "bg-rose-950 border-rose-500/50 text-rose-200";
+
+            toast.className = `p-3 px-4 rounded-xl border text-xs font-bold shadow-xl transition-all ${colors}`;
+            toast.innerText = message;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+    </script>
+</body>
+</html>
